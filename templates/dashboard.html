@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard – Trésorerie</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto p-8">
+    <h1 class="text-3xl font-semibold mb-6">Prévision – Upload {{ upload_id }}</h1>
+    <div class="bg-white p-6 rounded shadow mb-8"><canvas id="chart" height="100"></canvas></div>
+    <div class="grid grid-cols-2 gap-6 mb-8">
+      <div class="bg-white p-4 rounded shadow text-center">
+        <h2 class="text-xl mb-2">Solde J+7</h2><p class="text-2xl font-bold text-green-600">{{ '%.2f'|format(j7) }} €</p>
+      </div>
+      <div class="bg-white p-4 rounded shadow text-center">
+        <h2 class="text-xl mb-2">Solde J+30</h2><p class="text-2xl font-bold text-green-600">{{ '%.2f'|format(j30) }} €</p>
+      </div>
+    </div>
+    <a href="/" class="text-blue-600 hover:underline">← Retour</a>
+  </div>
+  <script>
+    fetch('/api/forecast/{{ upload_id }}')
+      .then(r=>r.json()).then(data=>{
+        const labels = data.map(r=>r.date), vals = data.map(r=>r.value);
+        new Chart(document.getElementById('chart'), {
+          type:'line', data:{labels, datasets:[{label:'Solde prévu (€)',data:vals,fill:false,tension:0.1}]},
+          options:{scales:{x:{title:{display:true,text:'Date'}},y:{title:{display:true,text:'Solde (€)'}}}}
+        });
+      });
+  </script>
+</body>
+</html>
