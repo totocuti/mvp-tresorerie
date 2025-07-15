@@ -62,4 +62,4 @@ if __name__=='__main__':
     c.execute('CREATE TABLE IF NOT EXISTS uploads(upload_id INTEGER PRIMARY KEY,filename TEXT)')
     c.execute('CREATE TABLE IF NOT EXISTS transactions(id INTEGER PRIMARY KEY,upload_id INTEGER,date DATE,libelle TEXT,montant REAL,solde REAL)')
     conn.commit(); conn.close()
-    app.run(debug=True, port=5001)
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5001)), debug=True)
