@@ -2,30 +2,23 @@
 {% block title %}Dashboard – {{ upload_id }}{% endblock %}
 
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>Prévisions de trésorerie</h2>
-  </div>
-
-  <!-- Grand graphique -->
-  <div class="card-custom p-4 mb-5">
-    <canvas id="forecastChart" height="180"></canvas>
-  </div>
-
-  <!-- Petites cartes -->
-  <div class="row gy-4">
-    <div class="col-md-6 col-lg-3">
-      <div class="card-custom p-3 text-center">
-        <h5>Solde J+7</h5>
-        <div class="display-6 text-success">{{ j7|round(2) }} €</div>
+  <div class="container-main">
+    <h2>Dashboard</h2>
+    <canvas id="forecastChart" height="200"></canvas>
+    <div class="row mt-4 g-4">
+      <div class="col-md-6">
+        <div class="card-small">
+          <h3>J+7</h3>
+          <div class="value">{{ j7|round(2) }} €</div>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="card-small">
+          <h3>J+30</h3>
+          <div class="value">{{ j30|round(2) }} €</div>
+        </div>
       </div>
     </div>
-    <div class="col-md-6 col-lg-3">
-      <div class="card-custom p-3 text-center">
-        <h5>Solde J+30</h5>
-        <div class="display-6 text-{{ 'danger' if j30<0 else 'success' }}">{{ j30|round(2) }} €</div>
-      </div>
-    </div>
-    <!-- On peut ajouter 2 autres cartes pour Budget ou autre -->
   </div>
 {% endblock %}
 
@@ -34,14 +27,23 @@
   <script>
     fetch("{{ url_for('api_forecast', upload_id=upload_id) }}")
       .then(r=>r.json()).then(data=>{
-        const labels = data.map(d=>d.date), values = data.map(d=>d.value);
-        new Chart(
-          document.getElementById('forecastChart'),
-          {type:'line', data:{labels, datasets:[{
-            label:'Solde prévu (€)', data:values, fill:false,
-            borderColor:'#0ff', tension:0.3
-          }]} }
-        );
+        const labels = data.map(d=>d.date),
+              values = data.map(d=>d.value);
+        new Chart(document.getElementById('forecastChart'),{
+          type:'line',
+          data:{ labels, datasets:[{
+            label:'Solde prévu', data:values,
+            borderColor:'#28a745', backgroundColor:'rgba(40,167,69,0.2)',
+            pointRadius:4, tension:0.2
+          }]},
+          options:{
+            plugins:{ legend:{ display:false } },
+            scales:{
+              x:{ grid:{ display:false }, ticks:{ maxRotation:0 } },
+              y:{ grid:{ color:'rgba(0,0,0,0.05)' } }
+            }
+          }
+        });
       });
   </script>
 {% endblock %}

@@ -1,38 +1,32 @@
-/* Google Font déjà déclarée dans base.html */
 body {
-  background: #f7f9fb;
-  color: #333;
+  background: #c9d5d1;
+  margin: 0;
+  font-family: 'Inter',sans-serif;
 }
 .sidebar {
-  background: #1f3a93;
+  width: 60px;
+  background: #2f4f4f;
+  padding-top: 2rem;
+  position: fixed;
+  height: 100vh;
+  text-align: center;
 }
-.sidebar .nav-link {
-  color: rgba(255,255,255,0.8)!important;
+.sidebar a { display:flex; justify-content:center; margin-bottom:1.5rem; color:#fff; }
+.content {
+  margin-left: 60px;
+  padding: 2rem;
 }
-.sidebar .nav-link.active {
-  background: rgba(255,255,255,0.1)!important;
-  color: #fff!important;
-}
-.card-custom {
+.container-main {
   background: #fff;
-  border-radius: 0.75rem;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  border: 2px solid #7d4ae8;
+  border-radius: 0.5rem;
+  padding: 1rem;
 }
-h1, h2, h3 {
-  font-weight: 400;
-  color: #1f3a93;
+.card-small {
+  background: #fff;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
 }
-.table thead {
-  background: #e9eff5;
-}
-.table tbody tr:nth-child(even) {
-  background: #f4f7fa;
-}
-.btn-outline-info {
-  color: #1f3a93 !important;
-  border-color: #1f3a93 !important;
-}
-.btn-outline-info:hover {
-  background: #1f3a93;
-  color: #fff !important;
-}
+.card-small h3 { margin-bottom:0.5rem; font-weight:500; }
+.card-small .value { font-size:2rem; color:#28a745; font-weight:600; }
