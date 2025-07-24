@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alertes opérationnelles</title>
+</head>
+<body>
+  <h1>Alertes pour l’upload #{{ upload_id }}</h1>
+  {% if message %}
+    <p><em>{{ message }}</em></p>
+  {% else %}
+    {% if alerts %}
+      <table border="1" cellpadding="5">
+        <tr><th>Date</th><th>Solde prévu (€)</th></tr>
+        {% for a in alerts %}
+          <tr>
+            <td>{{ a.date }}</td>
+            <td>{{ "%.2f"|format(a.value) }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p>Aucune alerte détectée sur les 30 jours suivants.</p>
+    {% endif %}
+  {% endif %}
+  <p><a href="{{ url_for('dashboard', upload_id=upload_id) }}">← Retour au dashboard</a></p>
+</body>
+</html>
