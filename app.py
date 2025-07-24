@@ -65,6 +65,26 @@ def api_forecast(upload_id):
 def api_alerts(upload_id):
 @app.route('/alerts/view/<int:upload_id>')
 def alerts_view(upload_id):
+    # Récupérer les seuils configurés
+    conn = sqlite3.connect(DB_PATH); cur = conn.cursor()
+    cur.execute('SELECT abs_threshold, rel_threshold FROM alerts WHERE upload_id=?', (upload_id,))
+    row = cur.fetchone(); conn.close()
+    if not row:
+        return render_template('alerts_view.html', upload_id=upload_id, alerts=[], message='Aucun seuil configuré.')
+    abs_th, rel_th = row
+    # Calculer la prévision
+    fc = compute_forecast(upload_id, days=30)
+    # Filtrer les alertes
+    triggered = []
+    for i, point in enumerate(fc, start=1):
+        prev = fc[i-2]['value'] if i>1 else None
+        cond_abs = abs_th is not None and point['value'] < abs_th
+        cond_rel = rel_th is not None and prev and ((prev-point['value'])/prev*100) > rel_th
+        if cond_abs or cond_rel:
+            triggered.append(point)
+    return render_template('alerts_view.html', upload_id=upload_id, alerts=triggered, message=None)
+@app.route('/alerts/view/<int:upload_id>')
+def alerts_view(upload_id):
     # récupère seuils et prévisions puis rend le template
     conn=sqlite3.connect(DB_PATH);cur=conn.cursor()
     cur.execute('SELECT abs_threshold, rel_threshold FROM alerts WHERE upload_id=?',(upload_id,))
