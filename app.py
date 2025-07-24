@@ -63,6 +63,17 @@ def api_forecast(upload_id):
 
 @app.route('/api/alerts/<int:upload_id>', methods=['GET','POST'])
 def api_alerts(upload_id):
+@app.route('/alerts/view/<int:upload_id>')
+def alerts_view(upload_id):
+    # récupère seuils et prévisions puis rend le template
+    conn=sqlite3.connect(DB_PATH);cur=conn.cursor()
+    cur.execute('SELECT abs_threshold, rel_threshold FROM alerts WHERE upload_id=?',(upload_id,))
+    row=cur.fetchone();conn.close()
+    if not row: return render_template('alerts_view.html',upload_id=upload_id,alerts=[],message='Aucun seuil.')
+    abs_th,rel_th=row
+    fc=compute_forecast(upload_id)
+    triggered=[p for i,p in enumerate(fc,1) if (abs_th and p['value']<abs_th) or (rel_th and i>1 and ((fc[i-2]['value']-p['value'])/fc[i-2]['value']*100)>rel_th)]
+    return render_template('alerts_view.html',upload_id=upload_id,alerts=triggered,message=None)
     conn = sqlite3.connect(DB_PATH); cur = conn.cursor()
     if request.method == 'POST':
         data = request.get_json()
