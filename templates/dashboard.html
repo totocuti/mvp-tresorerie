@@ -1,49 +1,75 @@
-{% extends 'base.html' %}
-{% block title %}Dashboard – {{ upload_id }}{% endblock %}
-
-{% block content %}
-  <div class="container-main">
-    <h2>Dashboard</h2>
-    <canvas id="forecastChart" height="200"></canvas>
-    <div class="row mt-4 g-4">
-      <div class="col-md-6">
-        <div class="card-small">
-          <h3>J+7</h3>
-          <div class="value">{{ j7|round(2) }} €</div>
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; background:#c9d5d1; font-family:'Inter',sans-serif; }
+    .sidebar { width:80px; background:#2f4f4f; height:100vh; position:fixed;
+               display:flex; align-items:center; justify-content:center; }
+    .sidebar a { color:#fff; display:block; margin:1rem 0; text-decoration:none; text-align:center; }
+    .main { margin-left:80px; padding:2rem; }
+    .frame { width:100%; max-width:1000px; margin:0 auto; background:#fff;
+             border:2px solid #7d4ae8; border-radius:8px; padding:1rem; }
+    h1 { margin:0 0 1rem; font-weight:600; color:#000; }
+    .cards { margin-top:1.5rem; display:flex; gap:2rem; justify-content:center; }
+    .card { background:#fff; border-radius:8px; padding:1.5rem 2rem; text-align:center;
+            box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+    .card h2 { margin:0 0 0.5rem; font-weight:600; }
+    .card .value { font-size:2rem; color:#28a745; font-weight:600; }
+    .btn-alert { display:inline-block; margin-bottom:1rem; padding:.5rem 1rem;
+                 background:#e83e8c; color:#fff; border-radius:4px; text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <a href="/dashboard/1"><i class="fas fa-chart-line fa-2x"></i></a>
+    <a href="/alerts/view/1"><i class="fas fa-bell fa-2x"></i></a>
+  </div>
+  <div class="main">
+    <div class="frame">
+      <h1>Dashboard</h1>
+      <a class="btn-alert" href="{{ url_for('alerts_view', upload_id=upload_id) }}">
+        Voir les alertes
+      </a>
+      <canvas id="chart" height="200"></canvas>
+      <div class="cards">
+        <div class="card">
+          <h2>J+7</h2>
+          <div class="value">{{ j7|round(2) }} €</div>
         </div>
-      </div>
-      <div class="col-md-6">
-        <div class="card-small">
-          <h3>J+30</h3>
-          <div class="value">{{ j30|round(2) }} €</div>
+        <div class="card">
+          <h2>J+30</h2>
+          <div class="value">{{ j30|round(2) }} €</div>
         </div>
       </div>
     </div>
   </div>
-{% endblock %}
-
-{% block scripts %}
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://kit.fontawesome.com/yourkit.js"></script>
   <script>
     fetch("{{ url_for('api_forecast', upload_id=upload_id) }}")
       .then(r=>r.json()).then(data=>{
-        const labels = data.map(d=>d.date),
-              values = data.map(d=>d.value);
-        new Chart(document.getElementById('forecastChart'),{
+        new Chart(document.getElementById('chart'), {
           type:'line',
-          data:{ labels, datasets:[{
-            label:'Solde prévu', data:values,
-            borderColor:'#28a745', backgroundColor:'rgba(40,167,69,0.2)',
-            pointRadius:4, tension:0.2
-          }]},
+          data:{
+            labels: data.map(d=>d.date),
+            datasets:[{
+              data: data.map(d=>d.value),
+              borderColor:'#28a745', backgroundColor:'rgba(40,167,69,0.1)',
+              pointRadius:4, tension:0.2
+            }]
+          },
           options:{
-            plugins:{ legend:{ display:false } },
             scales:{
               x:{ grid:{ display:false }, ticks:{ maxRotation:0 } },
               y:{ grid:{ color:'rgba(0,0,0,0.05)' } }
-            }
+            },
+            plugins:{ legend:{ display:false } }
           }
         });
       });
   </script>
-{% endblock %}
+</body>
+</html>
