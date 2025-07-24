@@ -1,0 +1,60 @@
+<script>const apiKey = prompt('Entrez votre clé API');</script>
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alertes - Trésorerie</title>
+</head>
+<body>
+  <h1>Alertes pour l’upload #{{ upload_id }}</h1>
+  <nav>
+    <a href="{{ url_for('dashboard', upload_id=upload_id) }}">Prévisions</a> |
+    <a href="{{ url_for('alerts_page', upload_id=upload_id) }}">Alertes</a>
+  </nav>
+  <form id="alerts-form">
+    <label>Seuil absolu (€) :
+      <input type="number" id="abs" />
+    </label><br/>
+    <label>Seuil relatif (%) :
+      <input type="number" id="rel" />
+    </label><br/>
+    <label>Envoi email :
+      <input type="checkbox" id="email" />
+    </label><br/>
+    <button type="submit">Enregistrer</button>
+  </form>
+  <script>
+    const uploadId = {{ upload_id }};
+    const apiUrl = `/api/alerts/${uploadId}`;
+    // Remplacez ici par votre clé API
+    const apiKey = 'VOTRE_API_KEY';
+
+    // Charger la config existante
+    fetch(apiUrl, { headers: { 'Authorization': `Bearer ${apiKey}` } })
+      .then(r => r.json())
+      .then(cfg => {
+        document.getElementById('abs').value = cfg.abs_threshold || '';
+        document.getElementById('rel').value = cfg.rel_threshold || '';
+        document.getElementById('email').checked = cfg.email_enabled;
+      });
+
+    // Soumettre les modifications
+    document.getElementById('alerts-form').addEventListener('submit', e => {
+      e.preventDefault();
+      const data = {
+        abs_threshold: parseFloat(document.getElementById('abs').value) || null,
+        rel_threshold: parseFloat(document.getElementById('rel').value) || null,
+        email_enabled: document.getElementById('email').checked
+      };
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`
+        },
+        body: JSON.stringify(data)
+      }).then(() => alert('Paramètres enregistrés !'));
+    });
+  </script>
+</body>
+</html>

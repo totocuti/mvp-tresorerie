@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Dashboard épuré</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; background:#c9d5d1; font-family:'Inter',sans-serif; }
+    .sidebar { width:80px; background:#2f4f4f; height:100vh; position:fixed; display:flex; align-items:center; justify-content:center; }
+    .sidebar i { color:#fff; font-size:32px; }
+    .main { margin-left:80px; padding:2rem; display:flex; flex-direction:column; align-items:center; }
+    .frame { width:90%; background:#fff; border:2px solid #7d4ae8; border-radius:8px; padding:1rem; }
+    h1 { margin:0 0 1rem; font-weight:600; color:#000; }
+    .cards { margin-top:1.5rem; display:flex; gap:2rem; justify-content:center; }
+    .card { background:#fff; border-radius:8px; padding:1.5rem 2rem; text-align:center; }
+    .card h2 { margin:0 0.5rem 0.5rem; font-weight:600; }
+    .card .value { font-size:2rem; color:#28a745; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <i class="fas fa-bell"></i>
+  </div>
+  <div class="main">
+    <div class="frame">
+      <h1>Dashboard</h1>
+      <canvas id="chart" height="200"></canvas>
+      <div class="cards">
+        <div class="card">
+          <h2>J+7</h2>
+          <div class="value">{{ j7|round(2) }} €</div>
+        </div>
+        <div class="card">
+          <h2>J+30</h2>
+          <div class="value">{{ j30|round(2) }} €</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    fetch("{{ url_for('api_forecast', upload_id=upload_id) }}")
+      .then(r=>r.json())
+      .then(data=>{
+        new Chart(document.getElementById('chart'), {
+          type:'line',
+          data:{
+            labels:data.map(d=>d.date),
+            datasets:[{
+              data:data.map(d=>d.value),
+              borderColor:'#28a745', backgroundColor:'rgba(40,167,69,0.1)',
+              pointRadius:4, tension:0.2
+            }]
+          },
+          options:{
+            scales:{
+              x:{ grid:{ display:false }, ticks:{ maxRotation:0 } },
+              y:{ grid:{ color:'rgba(0,0,0,0.05)' } }
+            },
+            plugins:{ legend:{ display:false } }
+          }
+        });
+      });
+  </script>
+  <script src="https://kit.fontawesome.com/yourkit.js"></script>
+</body>
+</html>

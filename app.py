@@ -101,3 +101,36 @@ if __name__=='__main__':
     c.execute('CREATE TABLE IF NOT EXISTS alerts(upload_id INTEGER PRIMARY KEY,abs_threshold REAL,rel_threshold REAL,email_enabled INTEGER)')
     conn.commit(); conn.close()
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT',5001)), debug=True)
+
+# ---- Page d’alertes opérationnelles ----
+@app.route('/alerts/view/<int:upload_id>')
+def alerts_view(upload_id):
+    # on récupère depuis la BDD (data/uploads/uploads.db) les seuils stockés
+    import sqlite3
+    conn = sqlite3.connect(DB_PATH)
+    cur  = conn.cursor()
+    cur.execute("SELECT abs_threshold, rel_threshold, email_enabled FROM alerts WHERE upload_id=?",
+                (upload_id,))
+    row = cur.fetchone()
+    conn.close()
+    abs_th, rel_th, email_en = (row if row else (None, None, False))
+
+    # on récupère les données de prévision
+    from app import compute_forecast  # fonction interne renvoyant liste de {date,value}
+    forecast = compute_forecast(upload_id)
+
+    # on calcule les points déclencheurs
+    triggered = []
+    prev = None
+    for point in forecast:
+        if prev is not None:
+            cond_abs = abs_th is not None and (prev - point['value']) > abs_th
+            cond_rel = rel_th is not None and ((prev - point['value'])/prev*100) > rel_th
+            if cond_abs or cond_rel:
+                triggered.append(point)
+        prev = point['value']
+
+    return render_template('alerts_view.html',
+                           upload_id=upload_id,
+                           alerts=triggered,
+                           message=('Aucun seuil configuré.' if abs_th is None and rel_th is None else None))

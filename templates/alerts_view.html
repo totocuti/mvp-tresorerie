@@ -1,79 +1,45 @@
-{% extends 'base.html' %}
-{% block title %}Alertes – {{ upload_id }}{% endblock %}
-
-{% block content %}
-  <h2 class="mb-4">Alertes opérationnelles</h2>
-
-  <div class="card-custom p-4 mb-5">
-    <form id="alertForm" class="row g-3 align-items-end">
-      <div class="col-md-4">
-        <label class="form-label">Seuil absolu (€)</label>
-        <input type="number" step="0.01" class="form-control" id="abs_threshold">
-      </div>
-      <div class="col-md-4">
-        <label class="form-label">Seuil relatif (%)</label>
-        <input type="number" step="0.1" class="form-control" id="rel_threshold">
-      </div>
-      <div class="col-md-4 d-grid">
-        <button class="btn btn-outline-info text-cyan border-cyan">Mettre à jour</button>
-      </div>
-    </form>
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <title>Alertes – Upload {{ upload_id }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; background:#f3f6f5; font-family:'Inter',sans-serif; }
+    .sidebar { width:80px; background:#2f4f4f; position:fixed; height:100vh;
+               display:flex; flex-direction:column; align-items:center; padding-top:2rem; }
+    .main { margin-left:80px; padding:2rem; }
+    h1 { font-weight:600; margin-bottom:1rem; }
+    table { width:100%; border-collapse:collapse; margin-top:1rem; }
+    th,td { padding:.75rem 1rem; text-align:left; border-bottom:1px solid #ddd; }
+    .none { color:#666; }
+    a.back { display:inline-block; margin-top:1rem; color:#7d4ae8; text-decoration:none; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <a href="/dashboard/{{ upload_id }}"><i class="fas fa-chart-line fa-2x" style="color:#fff"></i></a>
+    <a href="/alerts/view/{{ upload_id }}"><i class="fas fa-bell fa-2x" style="color:#fff; margin-top:1rem"></i></a>
   </div>
-
-  <div class="card-custom p-4">
-    <h5 class="mb-3">Jours en alerte</h5>
-    <div id="alertsList"></div>
+  <div class="main">
+    <h1>Alertes pour l’upload #{{ upload_id }}</h1>
+<form id="alertForm" class="mt-4 mb-4">
+  <label>Seuil absolu (€)&nbsp;<input type="number" step="0.01" id="abs"/></label>&nbsp;&nbsp;
+  <label>Seuil relatif (%)&nbsp;<input type="number" step="0.1" id="rel"/></label>&nbsp;&nbsp;
+  <button type="submit" class="btn-alert">Enregistrer</button>
+</form>
+    {% if message %}
+      <div class="none">{{ message }}</div>
+    {% else %}
+      <table>
+        <tr><th>Date</th><th>Solde prévu (€)</th></tr>
+        {% for pt in alerts %}
+        <tr><td>{{ pt.date }}</td><td style="color:#e83e8c">{{ pt.value|round(2) }}</td></tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+    <a class="back" href="{{ url_for('dashboard', upload_id=upload_id) }}">&larr; Retour au dashboard</a>
   </div>
-{% endblock %}
-
-{% block scripts %}
-<script>
-const apiAlerts = "{{ url_for('api_alerts', upload_id=upload_id) }}",
-      apiForecast = "{{ url_for('api_forecast', upload_id=upload_id) }}";
-
-async function initAlerts(){
-  const r = await fetch(apiAlerts);
-  if(r.ok){ const c = await r.json();
-    abs_threshold.value = c.abs_threshold||'';
-    rel_threshold.value = c.rel_threshold||'';
-  }
-  updateAlerts();
-}
-
-async function saveAlerts(e){
-  e.preventDefault();
-  await fetch(apiAlerts,{method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({
-      abs_threshold: parseFloat(abs_threshold.value)||null,
-      rel_threshold: parseFloat(rel_threshold.value)||null,
-      email_enabled:false
-    })
-  });
-  updateAlerts();
-}
-
-async function updateAlerts(){
-  const fc = await(await fetch(apiForecast)).json(),
-        abs = parseFloat(abs_threshold.value)||Infinity,
-        rel = parseFloat(rel_threshold.value)||Infinity;
-  const list = fc.filter((pt,i)=> pt.value<abs ||
-    (i>0 && ((fc[i-1].value-pt.value)/fc[i-1].value*100)>rel)
-  );
-  const container = document.getElementById('alertsList');
-  if(!list.length){
-    container.innerHTML = '<div class="alert alert-success">Aucune alerte.</div>';
-    return;
-  }
-  container.innerHTML = `<ul class="list-group">${
-    list.map(pt=>`<li class="list-group-item d-flex justify-content-between">
-      <span>${pt.date}</span>
-      <span>${pt.value.toFixed(2)} €</span>
-    </li>`).join('')
-  }</ul>`;
-}
-
-alertForm.addEventListener('submit', saveAlerts);
-window.addEventListener('DOMContentLoaded', initAlerts);
-</script>
-{% endblock %}
+  <script src="https://kit.fontawesome.com/yourkit.js"></script>
+</body>
+</html>
