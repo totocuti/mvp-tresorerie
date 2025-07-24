@@ -1,22 +1,56 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Dashboard Trésorerie</title>
-</head>
-<body>
-  <h1>Prévisions de trésorerie</h1>
-  <!-- Bouton Alertes -->
-  <p>
-    <a href="{{ url_for('alerts_view', upload_id=upload_id) }}"
-       style="padding:8px 12px; background:#f66; color:#fff; text-decoration:none; border-radius:4px;">
+{% extends 'base.html' %}
+{% block title %}Dashboard – {{ upload_id }}{% endblock %}
+
+{% block content %}
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3">Prévisions de trésorerie</h1>
+    <a href="{{ url_for('alerts_view', upload_id=upload_id) }}" class="btn btn-danger">
       Voir les alertes
     </a>
-  </p>
-  <div>
-    <p>Solde prévu à J+7 : <strong>{{ j7 }}</strong> €</p>
-    <p>Solde prévu à J+30 : <strong>{{ j30 }}</strong> €</p>
   </div>
-  <!-- Votre graphique ou autres éléments ici -->
-</body>
-</html>
+
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Solde prévu à J+7</h5>
+          <p class="display-6 text-success">{{ j7|round(2) }} €</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card text-center">
+        <div class="card-body">
+          <h5 class="card-title">Solde prévu à J+30</h5>
+          <p class="display-6 text-{{ 'danger' if j30<0 else 'success' }}">{{ j30|round(2) }} €</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card mb-5">
+    <div class="card-body">
+      <canvas id="forecastChart" height="150"></canvas>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    fetch("{{ url_for('api_forecast', upload_id=upload_id) }}")
+      .then(r=>r.json())
+      .then(data=>{
+        const labels = data.map(d=>d.date);
+        const values = data.map(d=>d.value);
+        new Chart(
+          document.getElementById('forecastChart'),
+          {
+            type: 'line',
+            data: { labels, datasets:[{ label:'Solde prévu (€)', data:values, fill:false, tension:0.2, borderColor:'#0d6efd' }] },
+            options:{ scales:{ x:{ ticks:{ maxRotation:45,minRotation:45 } } } }
+          }
+        );
+      });
+  </script>
+{% endblock %}
