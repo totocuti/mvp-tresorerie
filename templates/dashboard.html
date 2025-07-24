@@ -2,36 +2,30 @@
 {% block title %}Dashboard – {{ upload_id }}{% endblock %}
 
 {% block content %}
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h1 class="h3">Prévisions de trésorerie</h1>
-    <a href="{{ url_for('alerts_view', upload_id=upload_id) }}" class="btn btn-danger">
-      Voir les alertes
-    </a>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>Prévisions de trésorerie</h2>
   </div>
 
-  <div class="row mb-4">
-    <div class="col-md-6">
-      <div class="card text-center">
-        <div class="card-body">
-          <h5 class="card-title">Solde prévu à J+7</h5>
-          <p class="display-6 text-success">{{ j7|round(2) }} €</p>
-        </div>
-      </div>
-    </div>
-    <div class="col-md-6">
-      <div class="card text-center">
-        <div class="card-body">
-          <h5 class="card-title">Solde prévu à J+30</h5>
-          <p class="display-6 text-{{ 'danger' if j30<0 else 'success' }}">{{ j30|round(2) }} €</p>
-        </div>
-      </div>
-    </div>
+  <!-- Grand graphique -->
+  <div class="card-custom p-4 mb-5">
+    <canvas id="forecastChart" height="180"></canvas>
   </div>
 
-  <div class="card mb-5">
-    <div class="card-body">
-      <canvas id="forecastChart" height="150"></canvas>
+  <!-- Petites cartes -->
+  <div class="row gy-4">
+    <div class="col-md-6 col-lg-3">
+      <div class="card-custom p-3 text-center">
+        <h5>Solde J+7</h5>
+        <div class="display-6 text-success">{{ j7|round(2) }} €</div>
+      </div>
     </div>
+    <div class="col-md-6 col-lg-3">
+      <div class="card-custom p-3 text-center">
+        <h5>Solde J+30</h5>
+        <div class="display-6 text-{{ 'danger' if j30<0 else 'success' }}">{{ j30|round(2) }} €</div>
+      </div>
+    </div>
+    <!-- On peut ajouter 2 autres cartes pour Budget ou autre -->
   </div>
 {% endblock %}
 
@@ -39,17 +33,14 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
     fetch("{{ url_for('api_forecast', upload_id=upload_id) }}")
-      .then(r=>r.json())
-      .then(data=>{
-        const labels = data.map(d=>d.date);
-        const values = data.map(d=>d.value);
+      .then(r=>r.json()).then(data=>{
+        const labels = data.map(d=>d.date), values = data.map(d=>d.value);
         new Chart(
           document.getElementById('forecastChart'),
-          {
-            type: 'line',
-            data: { labels, datasets:[{ label:'Solde prévu (€)', data:values, fill:false, tension:0.2, borderColor:'#0d6efd' }] },
-            options:{ scales:{ x:{ ticks:{ maxRotation:45,minRotation:45 } } } }
-          }
+          {type:'line', data:{labels, datasets:[{
+            label:'Solde prévu (€)', data:values, fill:false,
+            borderColor:'#17a2b8', tension:0.3
+          }]} }
         );
       });
   </script>
